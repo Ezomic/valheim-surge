@@ -138,6 +138,11 @@ Confirmed against a running client:
 - `Multiplier = 2` doubled all 13 from their **vanilla** values, in a session where the
   previous run had left them at 0.25. Bronze went 50 to 100, not 25 — the originals are what
   gets scaled, across restarts as well as within a session.
+- `PerTrinket` names two items and touches exactly those two, from a cold start rather than
+  only through a live reload: bronze 50 to 150, iron 65 to 200, the other eleven reported
+  `unchanged`, no parse warnings.
+- The base of 0 and the empty tier list both reproduced on a second, separate session, so
+  neither is an artefact of one run.
 - Loading a world runs the tune a second time and it reported `retuned 0` with every trinket
   `unchanged`. That is the anti-compounding guard doing its job — had it recomputed from the
   current values instead of the originals, a `Multiplier` of 0.25 would have squared to
