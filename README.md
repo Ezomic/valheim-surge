@@ -111,8 +111,15 @@ fighting the same thing again.
 
 ## Multiplayer
 
-Client-side. Adrenaline is worked out entirely on the owning client and the max never travels,
-so a player running this mod gets their own numbers whether or not anyone else does.
+Mechanically this is client-side: adrenaline is worked out entirely on the owning client and
+the max never travels, so a player running this mod does get their own numbers whether or not
+anyone else does.
+
+It is nonetheless registered with Core as `Requirement.Everyone`, which is a fairness call
+rather than a technical one. Nothing corrupts if only one side runs it — no prefabs are
+registered and no ZDOs are written, so there is no saved data to lose — but two players in the
+same fight would be earning their trinket procs at different rates without either of them
+being told. Core reports the mismatch instead.
 
 `ObjectDB.CopyOtherDB` is patched as well as `Awake`, because a client rebuilds its item
 database from the server's copy on join — patching only `Awake` would let a vanilla server
