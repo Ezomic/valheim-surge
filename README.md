@@ -111,15 +111,22 @@ Confirmed against a running client:
 - All 13 trinkets resolve out of `ObjectDB` and their vanilla values read back correctly.
 - The defaults really are a no-op: `Multiplier = 1` reported `retuned 0`.
 - Editing the `.cfg` with the game running retuned all 13 without a restart.
+- **The player's base max adrenaline is 0**, read off a live player rather than assumed. So a
+  trinket's own number is the whole of the max, and the settings here are the whole of the
+  lever. It also means `PlayerBase` is a real option rather than a rounding tweak: raising it
+  above 0 is the only way to have an adrenaline bar with no trinket equipped.
+- Loading a world runs the tune a second time and it reported `retuned 0` with every trinket
+  `unchanged`. That is the anti-compounding guard doing its job — had it recomputed from the
+  current values instead of the originals, a `Multiplier` of 0.25 would have squared to
+  0.0625 and bronze would have read 3.13 rather than holding at 12.5.
 
 Not yet confirmed:
 
 - **The in-game effect.** The write is proven, but nobody has yet equipped a trinket and
   watched the bar charge at the new rate.
-- **`PlayerBase`.** The vanilla base is logged on first player spawn and that line has not
-  been produced yet, so the assumption that it is 0 is still an assumption.
 - **`ObjectDB.CopyOtherDB`**, the path that matters when joining a server that does not run
-  this mod. Patched and reasoned about, never exercised.
+  this mod. Patched and reasoned about, never exercised — the test session hosted its own
+  world, so the client was the server and that path never ran.
 
 ## License
 
