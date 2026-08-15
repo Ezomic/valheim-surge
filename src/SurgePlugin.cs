@@ -1,6 +1,7 @@
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using UnityEngine;
 
 namespace Surge
 {
@@ -21,10 +22,26 @@ namespace Surge
 
         internal static ManualLogSource Log;
 
+        /// <summary>How long the config file has to sit still before it is read.</summary>
+        private const float SettleSeconds = 0.3f;
+
         private Harmony _harmony;
 
         /// <summary>The Player the base value was last stamped onto, so respawns get it too.</summary>
         private Player _stamped;
+
+        /// <summary>Work handed over from a config change, to be done on the main thread.</summary>
+        private static volatile bool _retune;
+        private static volatile bool _restamp;
+
+        /// <summary>
+        /// When a noticed file edit should be acted on. Saving a text file commonly lands as
+        /// two or three filesystem events, and an editor that writes a temporary file and
+        /// renames it over the original briefly leaves nothing readable at the path - so a
+        /// reload on the first event reads a half-written file. Waiting out the quiet is
+        /// simpler than trying to tell the cases apart.
+        /// </summary>
+        private float _reloadAt;
 
         /// <summary>
         /// The game's own base, read off the first player seen rather than assumed. It is
@@ -45,28 +62,74 @@ namespace Surge
             // Every knob here is read out of the item database rather than held in memory,
             // so re-running the tuner is all a config change needs. UpdateModifiers reads
             // the result every frame, so it lands without re-equipping anything.
-            SurgeConfig.Enabled.SettingChanged += Retune;
-            SurgeConfig.Multiplier.SettingChanged += Retune;
-            SurgeConfig.FlatValue.SettingChanged += Retune;
-            SurgeConfig.PerTrinket.SettingChanged += Retune;
-            SurgeConfig.Minimum.SettingChanged += Retune;
+            //
+            // Queued rather than applied on the spot, for two reasons. A reload changes
+            // several entries and would otherwise walk the item database once per entry,
+            // and the handler can arrive off the main thread by way of the file watcher,
+            // where touching a Unity object is not allowed.
+            SurgeConfig.Enabled.SettingChanged += Queue;
+            SurgeConfig.Multiplier.SettingChanged += Queue;
+            SurgeConfig.FlatValue.SettingChanged += Queue;
+            SurgeConfig.PerTrinket.SettingChanged += Queue;
+            SurgeConfig.Minimum.SettingChanged += Queue;
 
             // The base is stamped onto the Player object rather than read from config each
             // frame, so changing it has to invalidate the stamp. Dropping the remembered
             // reference makes the next Update treat the current player as a new one.
-            SurgeConfig.PlayerBase.SettingChanged += (s, e) => _stamped = null;
+            SurgeConfig.PlayerBase.SettingChanged += (s, e) => _restamp = true;
+
+            ConfigWatcher.Start(Config);
 
             Log.LogInfo(PluginName + " " + PluginVersion + " by " + PluginAuthor + " - ready.");
         }
 
         private void OnDestroy()
         {
+            ConfigWatcher.Stop();
             if (_harmony != null) _harmony.UnpatchSelf();
         }
 
-        private static void Retune(object sender, System.EventArgs e)
+        private static void Queue(object sender, System.EventArgs e)
         {
-            AdrenalineTuner.Apply();
+            _retune = true;
+        }
+
+        /// <summary>
+        /// The one place anything actually happens, because it is the one place guaranteed
+        /// to be the main thread.
+        /// </summary>
+        private void Update()
+        {
+            if (ConfigWatcher.TakeDirty()) _reloadAt = Time.time + SettleSeconds;
+
+            if (_reloadAt > 0f && Time.time >= _reloadAt)
+            {
+                _reloadAt = 0f;
+                Reload();
+            }
+
+            if (_retune)
+            {
+                _retune = false;
+                AdrenalineTuner.Apply();
+            }
+
+            StampBase();
+        }
+
+        private void Reload()
+        {
+            try
+            {
+                // Only entries whose value actually differs raise SettingChanged, so this
+                // costs nothing when the file was touched without being meaningfully
+                // changed - including when BepInEx itself writes it back out.
+                Config.Reload();
+            }
+            catch (System.Exception e)
+            {
+                Log.LogWarning("Could not reload the config: " + e.Message);
+            }
         }
 
         /// <summary>
@@ -78,17 +141,21 @@ namespace Surge
         /// and no hook. It is written every time the reference changes rather than once,
         /// since the new instance comes back with the prefab's value.
         /// </summary>
-        private void Update()
+        private void StampBase()
         {
             var player = Player.m_localPlayer;
-            if (player == null || player == _stamped) return;
+            if (player == null) return;
+
+            if (_restamp) { _restamp = false; _stamped = null; }
+            if (player == _stamped) return;
 
             _stamped = player;
 
             if (float.IsNaN(_vanillaBase))
             {
                 _vanillaBase = player.m_maxAdrenaline;
-                Log.LogInfo("Player base max adrenaline (before trinkets) is " + _vanillaBase.ToString("0.##") + ".");
+                Log.LogInfo("Player base max adrenaline (before trinkets) is "
+                            + _vanillaBase.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + ".");
             }
 
             player.m_maxAdrenaline = SurgeConfig.PlayerBase.Value < 0f

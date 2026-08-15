@@ -21,6 +21,29 @@ the default here is a multiplier rather than a flat number: it keeps the designe
 between an iron trinket and a flametal one, and it gives modded trinkets a sensible value
 for free.
 
+## The vanilla numbers
+
+Read off the running game rather than a wiki, by turning `Verbose` on for one launch:
+
+| Trinket | Max | | Trinket | Max |
+| --- | --- | --- | --- | --- |
+| `TrinketChitinSwim` | 10 | | `TrinketCarapaceEitr` | 65 |
+| `TrinketBronzeHealth` | 50 | | `TrinketFlametalEitr` | 70 |
+| `TrinketBronzeStamina` | 50 | | `TrinketScaleStaminaDamage` | 75 |
+| `TrinketSilverDamage` | 55 | | `TrinketSilverResist` | 80 |
+| `TrinketBlackStamina` | 60 | | `TrinketBlackDamageHealth` | 85 |
+| `TrinketIronStamina` | 60 | | `TrinketFlametalStaminaHealth` | 100 |
+| `TrinketIronHealth` | 65 | | | |
+
+Thirteen trinkets, and the spread runs 10 to 100 — which is the argument for the multiplier
+default in one table. These are not tiers of one number with a couple of outliers; the value
+is doing per-trinket balance work. `TrinketChitinSwim` at 10 charges its effect almost
+constantly, `TrinketFlametalStaminaHealth` at 100 is a long earn. A flat value throws all of
+that away, so `FlatValue` exists but is off.
+
+Note also that `TrinketFlametaStaminaHealth` — the misspelled name that appears in the game's
+own asset manifest — is not among them. The manifest lists what is on disk, not what loads.
+
 ## Settings
 
 | Setting | Default | Effect |
@@ -55,6 +78,20 @@ config change lands live — no re-equipping and no reload. And because the orig
 captured the first time an item is seen and every result computed from it, the multiplier
 never compounds across the several times `ObjectDB` is built in a session.
 
+## Editing the config while the game runs
+
+Save the `.cfg` and the change takes effect. There is no keybind and nothing to press.
+
+This needs saying because it is not how BepInEx normally behaves: BepInEx 5 does not watch
+config files, so without help the only way to try a different multiplier is to edit and
+restart, which is a full world load per value. Surge watches its own file, waits for the
+writes to settle, reloads, and retunes. Since the game re-reads the result every frame, the
+new number is live before you have alt-tabbed back.
+
+That is worth more here than in most mods, because the useful setting is a feel judgement
+rather than a fact. You find it by fighting something with one value, changing it, and
+fighting the same thing again.
+
 ## Multiplayer
 
 Client-side. Adrenaline is worked out entirely on the owning client and the max never travels,
@@ -67,7 +104,22 @@ everyone on the same numbers without each player having to match cfg files.
 
 ## Status
 
-Builds. **Not yet tested in game.**
+Partly tested in game, on 2026-08-15.
+
+Confirmed against a running client:
+
+- All 13 trinkets resolve out of `ObjectDB` and their vanilla values read back correctly.
+- The defaults really are a no-op: `Multiplier = 1` reported `retuned 0`.
+- Editing the `.cfg` with the game running retuned all 13 without a restart.
+
+Not yet confirmed:
+
+- **The in-game effect.** The write is proven, but nobody has yet equipped a trinket and
+  watched the bar charge at the new rate.
+- **`PlayerBase`.** The vanilla base is logged on first player spawn and that line has not
+  been produced yet, so the assumption that it is 0 is still an assumption.
+- **`ObjectDB.CopyOtherDB`**, the path that matters when joining a server that does not run
+  this mod. Patched and reasoned about, never exercised.
 
 ## License
 

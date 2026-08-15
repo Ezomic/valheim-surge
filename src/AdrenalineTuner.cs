@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 
 namespace Surge
@@ -118,9 +119,15 @@ namespace Surge
             return Mathf.Max(Mathf.Max(0f, SurgeConfig.Minimum.Value), value);
         }
 
+        /// <summary>
+        /// InvariantCulture, not the machine's. This is not cosmetic: the config tells you to
+        /// read prefab names out of this log, PerTrinket splits its entries on commas, and
+        /// this machine is on a Dutch locale - so the default formatting printed "85 -> 21,25"
+        /// and anything copied from it parsed as an entry of 21 followed by junk.
+        /// </summary>
         private static string Show(float value)
         {
-            return value.ToString("0.##");
+            return value.ToString("0.##", CultureInfo.InvariantCulture);
         }
     }
 }
