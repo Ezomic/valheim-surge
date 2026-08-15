@@ -57,10 +57,15 @@ namespace Surge
         {
             Log = Logger;
             SurgeConfig.Bind(Config);
-            // Everyone, not HostOnly. Both ends have to agree about this mod, and the
-            // disagreement is silent when they do not: a client that cannot resolve a prefab
-            // hash discards the ZDO rather than erroring - destroying what is already standing
-            // in the world - and item data that differs desyncs inventories.
+            // Everyone, not HostOnly - but for fairness rather than for safety, which is a
+            // weaker reason than the one the mods that register prefabs have and is worth
+            // being honest about. Nothing here corrupts when only one side runs it: no prefab
+            // is registered and no ZDO is written, so there is no hash that can fail to
+            // resolve and nothing already standing in a world to lose, and items sync by name
+            // and quality rather than by the shared data this touches. What does happen is
+            // that two players in the same fight earn their trinket procs at different rates
+            // with neither of them being told, and a silent disagreement is the thing Core
+            // exists to report.
             Suite.Register(PluginGuid, PluginName, PluginVersion, Config);
 
             _harmony = new Harmony(PluginGuid);
