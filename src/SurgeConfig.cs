@@ -39,13 +39,14 @@ namespace Surge
                 + "sooner and more often. Both the fill rate and the decay rate are curves "
                 + "over how full the bar is rather than fixed amounts, so they stretch along "
                 + "with it and 2 really does mean about twice as long. The one thing that "
-                + "does not stretch is the grace period before a idle bar starts decaying, "
+                + "does not stretch is the grace period before an idle bar starts decaying, "
                 + "which stays the same number of seconds - so a longer bar simply gives a "
                 + "lull in the fight more chance to eat into it, and at high values the "
-                + "payoff can become hard to reach against weak enemies. Note also that the "
-                + "player's own tiered adrenaline buffs fire at fixed amounts and do not "
-                + "move with this, so raising it means spending longer in the top tier "
-                + "before the trinket itself goes off. Verbose lists those tiers.");
+                + "payoff can become hard to reach against weak enemies. Nothing else "
+                + "competes with this: the game also has a tiered adrenaline buff system "
+                + "keyed to fixed amounts, which would not move with this setting, but it is "
+                + "empty on the player and so the trinket's own effect is the only payoff. "
+                + "Verbose reports those tiers if a game version ever fills them in.");
 
             FlatValue = config.Bind("Surge", "FlatValue", 0f,
                 "Give every trinket this exact max adrenaline, ignoring Multiplier. 0 = off. "

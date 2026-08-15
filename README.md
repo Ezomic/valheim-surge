@@ -19,17 +19,19 @@ It scales close to linearly, because both the fill rate and the decay rate are c
 *how full* the bar is rather than fixed amounts — so they stretch along with the bar, and 2
 really does mean about twice as long.
 
-Two things do not stretch with it, and both matter when raising the value:
+One thing does not stretch with it, and it matters when raising the value: **the grace period
+before an idle bar starts decaying** is a fixed number of seconds. A longer bar therefore
+gives a lull in the fight more chance to eat into it, so high values are disproportionately
+harder than the number suggests, and the payoff can become hard to reach against enemies that
+die too quickly to keep the bar fed.
 
-- **The grace period before an idle bar starts decaying** is a fixed number of seconds. A
-  longer bar therefore gives a lull in the fight more chance to eat into it, so high values
-  are disproportionately harder than the number suggests, and the payoff can become hard to
-  reach against enemies that die too quickly to keep the bar fed.
-- **The player's own tiered adrenaline buffs** are a separate system that fires at fixed
-  amounts of adrenaline, not at fractions of the max. Raising a trinket's max does not move
-  them, so you reach the same tiers at much the same point and then fight on well past them —
-  spending considerably longer in the top tier before the trinket itself goes off. Turning
-  `Verbose` on lists those tiers.
+Nothing else competes with the setting. The game does contain a second adrenaline payoff — a
+list of tiered status effects on `Player` keyed to *fixed* amounts rather than to fractions of
+the max, which would therefore not move when this setting changes. It is worth knowing about
+and worth dismissing: read off a live player, **that list is empty**. The trinket's own effect
+is the only payoff there is, so the max really is the whole of the lever. `Verbose` prints the
+tiers, so if a future game version fills them in it will say so rather than going quietly
+wrong.
 
 Vanilla sets a different max per trinket tier, which is a real balance decision. That is why
 the default here is a multiplier rather than a flat number: it keeps the designed spread
@@ -130,6 +132,12 @@ Confirmed against a running client:
   trinket's own number is the whole of the max, and the settings here are the whole of the
   lever. It also means `PlayerBase` is a real option rather than a rounding tweak: raising it
   above 0 is the only way to have an adrenaline bar with no trinket equipped.
+- **The player's tiered adrenaline effects list is empty**, also read rather than assumed. The
+  trinket's own effect is the only thing the bar pays out, so nothing competes with the max
+  for control of when that happens.
+- `Multiplier = 2` doubled all 13 from their **vanilla** values, in a session where the
+  previous run had left them at 0.25. Bronze went 50 to 100, not 25 — the originals are what
+  gets scaled, across restarts as well as within a session.
 - Loading a world runs the tune a second time and it reported `retuned 0` with every trinket
   `unchanged`. That is the anti-compounding guard doing its job — had it recomputed from the
   current values instead of the originals, a `Multiplier` of 0.25 would have squared to
