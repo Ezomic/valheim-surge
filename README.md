@@ -10,11 +10,26 @@ A trinket gives you an adrenaline bar. Parrying, dodging and staggering fill it;
 attack and taking unblocked damage drain it, and it decays on its own after a short delay.
 When it reaches the top, the trinket's own status effect fires and the bar resets to empty.
 
-So the max is not a stat you want more of. It is a **charge time**. A higher max means a
-longer run of good fighting before the effect pays out; a lower one means it pays out more
-often for less. That is the whole knob this mod exposes, and it is the one worth exposing,
-because the gain rates are unchanged — halving the max really does double how often the
-effect goes off, with no other side effects.
+So the max is not a stat you want more of. It is a **charge time**, and it is the amount the
+bar must reach before the trinket fires. A higher max means a longer run of good fighting
+before the effect pays out; a lower one means it pays out more often for less. That is the
+knob this mod exposes.
+
+It scales close to linearly, because both the fill rate and the decay rate are curves over
+*how full* the bar is rather than fixed amounts — so they stretch along with the bar, and 2
+really does mean about twice as long.
+
+Two things do not stretch with it, and both matter when raising the value:
+
+- **The grace period before an idle bar starts decaying** is a fixed number of seconds. A
+  longer bar therefore gives a lull in the fight more chance to eat into it, so high values
+  are disproportionately harder than the number suggests, and the payoff can become hard to
+  reach against enemies that die too quickly to keep the bar fed.
+- **The player's own tiered adrenaline buffs** are a separate system that fires at fixed
+  amounts of adrenaline, not at fractions of the max. Raising a trinket's max does not move
+  them, so you reach the same tiers at much the same point and then fight on well past them —
+  spending considerably longer in the top tier before the trinket itself goes off. Turning
+  `Verbose` on lists those tiers.
 
 Vanilla sets a different max per trinket tier, which is a real balance decision. That is why
 the default here is a multiplier rather than a flat number: it keeps the designed spread

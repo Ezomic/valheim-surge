@@ -33,11 +33,19 @@ namespace Surge
             // vanilla's, and so the designed spread between an iron trinket and a flametal
             // one survives the change.
             Multiplier = config.Bind("Surge", "Multiplier", 1f,
-                "Scales every trinket's vanilla max adrenaline. 1 = unchanged. Below 1 the "
-                + "bar fills sooner, so the trinket's full-adrenaline effect fires more often; "
-                + "above 1 it takes longer and fires less. This is the whole of the balance "
-                + "lever - gain rate is untouched, so halving this really does double how "
-                + "often the effect pops.");
+                "Scales every trinket's vanilla max adrenaline, which is the amount the bar "
+                + "must reach before the trinket fires its effect and empties. 1 = unchanged. "
+                + "Above 1 the trinket needs more before it pays out; below 1 it pays out "
+                + "sooner and more often. Both the fill rate and the decay rate are curves "
+                + "over how full the bar is rather than fixed amounts, so they stretch along "
+                + "with it and 2 really does mean about twice as long. The one thing that "
+                + "does not stretch is the grace period before a idle bar starts decaying, "
+                + "which stays the same number of seconds - so a longer bar simply gives a "
+                + "lull in the fight more chance to eat into it, and at high values the "
+                + "payoff can become hard to reach against weak enemies. Note also that the "
+                + "player's own tiered adrenaline buffs fire at fixed amounts and do not "
+                + "move with this, so raising it means spending longer in the top tier "
+                + "before the trinket itself goes off. Verbose lists those tiers.");
 
             FlatValue = config.Bind("Surge", "FlatValue", 0f,
                 "Give every trinket this exact max adrenaline, ignoring Multiplier. 0 = off. "
