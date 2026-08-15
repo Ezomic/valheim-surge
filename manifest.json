@@ -1,0 +1,10 @@
+{
+  "name": "Surge",
+  "author": "Robbin Thijssen",
+  "version_number": "0.1.0",
+  "website_url": "",
+  "description": "Configure the max adrenaline granted by trinkets.",
+  "dependencies": [
+    "denikson-BepInExPack_Valheim-5.4.2333"
+  ]
+}
