@@ -1,11 +1,13 @@
 using BepInEx;
 using BepInEx.Logging;
+using Ezomic.Core;
 using HarmonyLib;
 using UnityEngine;
 
 namespace Surge
 {
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
+    [BepInDependency("ezomic.valheim.core", BepInDependency.DependencyFlags.HardDependency)]
     // No BepInProcess. Adrenaline is worked out entirely on the owning client - the max is
     // read off the local player's own equipment every frame and never travels - so this is
     // a client-side mod. It is listed for a dedicated server anyway for the same reason
@@ -55,6 +57,11 @@ namespace Surge
         {
             Log = Logger;
             SurgeConfig.Bind(Config);
+            // Everyone, not HostOnly. Both ends have to agree about this mod, and the
+            // disagreement is silent when they do not: a client that cannot resolve a prefab
+            // hash discards the ZDO rather than erroring - destroying what is already standing
+            // in the world - and item data that differs desyncs inventories.
+            Suite.Register(PluginGuid, PluginName, PluginVersion, Config);
 
             _harmony = new Harmony(PluginGuid);
             _harmony.PatchAll(typeof(ObjectDbPatches));
