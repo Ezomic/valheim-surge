@@ -2,6 +2,10 @@
 bin/
 obj/
 
+# Thunderstore zips from package.ps1. Rebuildable from the tagged source, and a binary
+# nobody can diff.
+dist/
+
 # Local IDE / user files
 *.user
 *.suo
