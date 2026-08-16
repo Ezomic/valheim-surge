@@ -5,7 +5,7 @@
     <AssemblyName>Surge</AssemblyName>
     <RootNamespace>Surge</RootNamespace>
     <LangVersion>latest</LangVersion>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>Robbin Thijssen</Authors>
     <Company>Thijssen Software</Company>
     <Product>Surge</Product>

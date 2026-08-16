@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.2 - 2026-08-16
 
 Config changes no longer depend on the mod being told about them.
 
