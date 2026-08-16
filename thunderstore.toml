@@ -9,10 +9,11 @@ namespace = "Ezomic"
 name = "Surge"
 versionNumber = "0.1.0"
 description = "Configure the max adrenaline granted by trinkets."
-websiteUrl = ""
+websiteUrl = "https://github.com/Ezomic/valheim-surge"
 containsNsfwContent = false
 
 [package.dependencies]
+Ezomic-Longhouse_Core = "0.2.0"
 denikson-BepInExPack_Valheim = "5.4.2333"
 
 [build]

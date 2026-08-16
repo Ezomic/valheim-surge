@@ -1,10 +1,11 @@
 {
-  "name": "Surge",
-  "author": "Robbin Thijssen",
-  "version_number": "0.1.0",
-  "website_url": "",
-  "description": "Configure the max adrenaline granted by trinkets.",
-  "dependencies": [
-    "denikson-BepInExPack_Valheim-5.4.2333"
-  ]
+    "name":  "Surge",
+    "author":  "Robbin Thijssen",
+    "version_number":  "0.1.0",
+    "description":  "Configure the max adrenaline granted by trinkets.",
+    "dependencies":  [
+                         "Ezomic-Longhouse_Core-0.2.0",
+                         "denikson-BepInExPack_Valheim-5.4.2333"
+                     ],
+    "website_url":  "https://github.com/Ezomic/valheim-surge"
 }
