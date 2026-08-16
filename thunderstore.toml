@@ -7,7 +7,7 @@ schemaVersion = "0.0.1"
 [package]
 namespace = "Ezomic"
 name = "Surge"
-versionNumber = "0.1.0"
+versionNumber = "1.0.0"
 description = "Configure the max adrenaline granted by trinkets."
 websiteUrl = "https://github.com/Ezomic/valheim-surge"
 containsNsfwContent = false

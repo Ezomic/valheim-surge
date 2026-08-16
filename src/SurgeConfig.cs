@@ -111,9 +111,10 @@ namespace Surge
 
                 var name = text.Substring(0, split).Trim();
 
-                // InvariantCulture on purpose. This machine is on a Dutch locale, where the
-                // decimal separator is a comma - which is also the entry separator here, so
-                // a value can only ever arrive with a dot in it.
+                // InvariantCulture on purpose, and not merely for tidiness. On a locale whose
+                // decimal separator is a comma, parsing by the machine's own rules would
+                // collide with the character separating entries here - so a value can only
+                // ever arrive with a dot in it, whatever the player's regional settings say.
                 if (!float.TryParse(text.Substring(split + 1).Trim(),
                                     NumberStyles.Float,
                                     CultureInfo.InvariantCulture,

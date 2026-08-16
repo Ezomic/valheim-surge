@@ -4,6 +4,52 @@ Configure the max adrenaline granted by trinkets.
 
 Built against the installed game (Unity 6000.0.61, BepInEx 5.4.23.3, Harmony 2.9).
 
+## Installing
+
+Needs BepInEx, and nothing else. This is one DLL with no dependencies — through a mod manager
+it is a single install, and by hand it is:
+
+1. Put `Surge.dll` in `BepInEx/plugins/Surge/`.
+2. Start the game once and quit. That first run writes the config file; it does not exist
+   until the mod has loaded at least one time, which is the usual reason people think the mod
+   is broken when nothing has gone wrong.
+
+Out of the box **nothing changes** — every default is deliberately a no-op, so installing it
+and not editing anything leaves the game exactly as it was.
+
+## Changing the settings
+
+The config file is:
+
+```
+BepInEx/config/ezomic.valheim.surge.cfg
+```
+
+Open it in any text editor. Every setting carries a comment above it explaining what it does,
+so the file is the documentation. The two you are likely to want:
+
+**Make every trinket take longer to fire.** Its effect goes off when the bar fills, so a bigger
+number means a longer charge:
+
+```ini
+Multiplier = 2
+```
+
+**Set exact values on specific trinkets, leaving the rest alone.** Absolute numbers, not
+multipliers, and it needs `Multiplier = 1` or the multiplier still applies to everything you
+did not name:
+
+```ini
+Multiplier = 1
+PerTrinket = TrinketBronzeHealth=35,TrinketFlametalStaminaHealth=45
+```
+
+The prefab names are in the table further down, and setting `Verbose = true` makes the mod list
+all of them in `BepInEx/LogOutput.log` along with what it changed each one to.
+
+**Save the file and the change applies immediately** — no restart, and no need to leave the
+world. See [Editing the config while the game runs](#editing-the-config-while-the-game-runs).
+
 ## What adrenaline actually is
 
 A trinket gives you an adrenaline bar. Parrying, dodging and staggering fill it; missing an
@@ -109,14 +155,6 @@ That is worth more here than in most mods, because the useful setting is a feel 
 rather than a fact. You find it by fighting something with one value, changing it, and
 fighting the same thing again.
 
-## Installing
-
-One mod and BepInEx. Drop `Surge.dll` in `BepInEx/plugins/Surge/`, run the game once to get a
-config file, edit it, and save — the change applies without a restart.
-
-Nothing else is needed. If you also happen to run Longhouse Core it will be used, but it is
-optional and Surge neither requires nor ships it.
-
 ## Multiplayer
 
 Mechanically this is client-side: adrenaline is worked out entirely on the owning client and
@@ -138,9 +176,10 @@ everyone on the same numbers without each player having to match cfg files.
 
 ## Status
 
-Partly tested in game, on 2026-08-15.
+Tested in game and working, confirmed 2026-08-16 with a trinket equipped and the bar charging
+at the changed rate.
 
-Confirmed against a running client:
+Also confirmed against a running client:
 
 - All 13 trinkets resolve out of `ObjectDB` and their vanilla values read back correctly.
 - The defaults really are a no-op: `Multiplier = 1` reported `retuned 0`.
@@ -165,13 +204,10 @@ Confirmed against a running client:
   current values instead of the originals, a `Multiplier` of 0.25 would have squared to
   0.0625 and bronze would have read 3.13 rather than holding at 12.5.
 
-Not yet confirmed:
-
-- **The in-game effect.** The write is proven, but nobody has yet equipped a trinket and
-  watched the bar charge at the new rate.
-- **`ObjectDB.CopyOtherDB`**, the path that matters when joining a server that does not run
-  this mod. Patched and reasoned about, never exercised — the test session hosted its own
-  world, so the client was the server and that path never ran.
+One path remains reasoned about rather than exercised: **`ObjectDB.CopyOtherDB`**, which runs
+when joining a server that does not have this mod. Every test session so far hosted its own
+world, so the client was the server and that path never ran. It is patched for the same reason
+`Awake` is, and the failure it guards against would be the mod silently reverting on connect.
 
 ## License
 

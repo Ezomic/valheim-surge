@@ -130,7 +130,7 @@ namespace Surge
         /// <summary>
         /// InvariantCulture, not the machine's. This is not cosmetic: the config tells you to
         /// read prefab names out of this log, PerTrinket splits its entries on commas, and
-        /// this machine is on a Dutch locale - so the default formatting printed "85 -> 21,25"
+        /// a locale whose decimal separator is a comma prints "85 -> 21,25" by default
         /// and anything copied from it parsed as an entry of 21 followed by junk.
         /// </summary>
         private static string Show(float value)
