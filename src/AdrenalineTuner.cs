@@ -31,6 +31,52 @@ namespace Surge
     {
         private static readonly Dictionary<string, float> Originals = new Dictionary<string, float>();
 
+        /// <summary>
+        /// Writes the same targets into the items the player is actually carrying.
+        ///
+        /// This is the whole reason a config change used to need a world reload, and it took
+        /// measuring to find rather than reading. ItemData.Clone is a MemberwiseClone, which
+        /// copies the *reference* to m_shared, so on paper an inventory item and its prefab
+        /// are the same object and writing one writes both. In a running game they do not
+        /// behave that way: with a trinket equipped, the prefab was set to 42 while the item
+        /// being worn stayed at 99 and the player's max adrenaline stayed at 99 with it.
+        ///
+        /// What made it convincing as a prefab-only job is that a fresh load looks perfect.
+        /// The inventory is rebuilt from the prefabs after the retune has run, so every item
+        /// picks up the new number on the way in. That is exactly why restarting appeared to
+        /// be the fix, and why every check made against this mod's own log agreed with itself
+        /// while a player watching his own trinket kept saying it had not changed. He was
+        /// right.
+        ///
+        /// Keyed on m_dropPrefab.name so it lands on the same entry the prefab pass used, and
+        /// harmless in the case where the reference genuinely is shared: the value is already
+        /// correct and nothing is written.
+        /// </summary>
+        private static int ApplyToInventory()
+        {
+            var player = Player.m_localPlayer;
+            var inventory = player != null ? player.GetInventory() : null;
+            if (inventory == null) return 0;
+
+            var changed = 0;
+
+            foreach (var item in inventory.GetAllItems())
+            {
+                if (item == null || item.m_shared == null || item.m_dropPrefab == null) continue;
+
+                float original;
+                if (!Originals.TryGetValue(item.m_dropPrefab.name, out original)) continue;
+
+                var target = Target(item.m_dropPrefab.name, original);
+                if (Mathf.Approximately(item.m_shared.m_maxAdrenaline, target)) continue;
+
+                item.m_shared.m_maxAdrenaline = target;
+                changed++;
+            }
+
+            return changed;
+        }
+
         /// <param name="announce">
         /// False for the periodic sweep, which runs constantly and must say nothing unless it
         /// actually changed something. True for the passes worth reporting: startup, a world
@@ -100,10 +146,14 @@ namespace Surge
                     SurgePlugin.Log.LogInfo("  " + prefab.name + ": " + Show(original) + " -> " + Show(target));
             }
 
+            var live = ApplyToInventory();
+
             if (announce)
-                SurgePlugin.Log.LogInfo("Found " + found + " adrenaline item(s); retuned " + changed + ".");
-            else if (changed > 0)
-                SurgePlugin.Log.LogInfo("Swept up " + changed + " trinket(s) the config change did not reach.");
+                SurgePlugin.Log.LogInfo("Found " + found + " adrenaline item(s); retuned " + changed
+                                        + ", plus " + live + " in the player's inventory.");
+            else if (changed > 0 || live > 0)
+                SurgePlugin.Log.LogInfo("Swept up " + changed + " prefab(s) and " + live
+                                        + " carried item(s) the config change did not reach.");
         }
 
         /// <summary>

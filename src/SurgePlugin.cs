@@ -47,6 +47,9 @@ namespace Surge
         /// <summary>Last effective max reported, so the line is written on change only.</summary>
         private float _lastReportedMax = float.NaN;
 
+        /// <summary>Same, for the equipped trinket's own shared data.</summary>
+        private float _lastEquippedShared = float.NaN;
+
         private Harmony _harmony;
 
         /// <summary>The Player the base value was last stamped onto, so respawns get it too.</summary>
@@ -149,6 +152,46 @@ namespace Surge
             Log.LogInfo("Local player's max adrenaline is now "
                         + live.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)
                         + " (0 means no trinket equipped).");
+        }
+
+        /// <summary>
+        /// Reports what the equipped trinket's own shared data says, which is the one number
+        /// that separates the two remaining explanations.
+        ///
+        /// A retune writes to the prefab in ObjectDB. Inventory.AddItem builds an item with
+        /// ItemData.Clone, which is a MemberwiseClone and therefore copies the *reference* to
+        /// m_shared, so on paper the equipped item and the prefab are the same object and a
+        /// write to one is a write to both. Measured, they are not behaving that way: the
+        /// prefab went to 99 and Player.GetMaxAdrenaline stayed at 35.
+        ///
+        /// So either the equipped item is holding its own copy of SharedData, in which case
+        /// this prints the old value and the fix is to write through the player's inventory
+        /// as well as the prefab, or it is holding the prefab's and this prints the new value,
+        /// in which case the fault is downstream in the equipment modifier totals and the fix
+        /// is to make the game recompute them. Guessing between those has already cost three
+        /// wrong answers, so it gets measured.
+        /// </summary>
+        private void ReportEquippedShared(Player player)
+        {
+            if (!SurgeConfig.Verbose.Value) return;
+
+            var inventory = player.GetInventory();
+            if (inventory == null) return;
+
+            foreach (var item in inventory.GetAllItems())
+            {
+                if (item == null || !item.m_equipped || item.m_shared == null) continue;
+                if (item.m_shared.m_itemType != ItemDrop.ItemData.ItemType.Trinket) continue;
+
+                if (Mathf.Approximately(item.m_shared.m_maxAdrenaline, _lastEquippedShared)) return;
+
+                _lastEquippedShared = item.m_shared.m_maxAdrenaline;
+                Log.LogInfo("Equipped trinket's own shared max is now "
+                            + _lastEquippedShared.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)
+                            + ". If this tracks the retune but the line above does not, the item"
+                            + " is fine and the equipment totals are stale.");
+                return;
+            }
         }
 
         /// <summary>
@@ -275,6 +318,7 @@ namespace Surge
             if (player == null) return;
 
             ReportLiveMax(player);
+            ReportEquippedShared(player);
 
             if (_restamp) { _restamp = false; _stamped = null; }
             if (player == _stamped) return;

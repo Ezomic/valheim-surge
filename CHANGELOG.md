@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+Editing the config now actually changes a trinket you are wearing. Until this, it did not,
+whatever the three previous releases claimed.
+
+The mod wrote its numbers to the item prefabs and nothing else, on the understanding that an
+item in your inventory shares its prefab's data. `ItemData.Clone` is a `MemberwiseClone`, which
+copies the reference rather than the contents, so on paper writing one writes both. Measured in
+a running game, it does not: with a trinket equipped, the prefab was set to 42 while the item
+being worn stayed at 99, and the player's max adrenaline stayed with the item.
+
+What hid it is that a fresh load looks perfect. The inventory is rebuilt from the prefabs after
+the retune runs, so everything picks up the new number on the way in. That is why restarting
+appeared to be the fix, and why the mod's own log agreed with itself while a player watching
+his own trinket kept saying nothing had changed. He was right.
+
+Carried items are now written along with the prefabs. The log reports both counts, as
+`retuned N, plus M in the player's inventory`.
+
 ## 1.0.2 - 2026-08-16
 
 Config changes no longer depend on the mod being told about them.
