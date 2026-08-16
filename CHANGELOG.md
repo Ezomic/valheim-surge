@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.3 - 2026-08-16
 
 Editing the config now actually changes a trinket you are wearing. Until this, it did not,
 whatever the three previous releases claimed.
