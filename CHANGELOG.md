@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.1 - 2026-08-16
 
 Fixes editing the config needing a restart, which is what 1.0.0 said it did not need.
 

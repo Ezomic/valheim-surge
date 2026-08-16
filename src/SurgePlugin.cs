@@ -25,7 +25,7 @@ namespace Surge
     {
         public const string PluginGuid = "ezomic.valheim.surge";
         public const string PluginName = "Surge";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.1";
         public const string PluginAuthor = "Robbin Thijssen";
 
         /// <summary>Core's plugin GUID. Optional - see TryRegisterWithCore.</summary>
