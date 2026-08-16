@@ -109,17 +109,27 @@ That is worth more here than in most mods, because the useful setting is a feel 
 rather than a fact. You find it by fighting something with one value, changing it, and
 fighting the same thing again.
 
+## Installing
+
+One mod and BepInEx. Drop `Surge.dll` in `BepInEx/plugins/Surge/`, run the game once to get a
+config file, edit it, and save — the change applies without a restart.
+
+Nothing else is needed. If you also happen to run Longhouse Core it will be used, but it is
+optional and Surge neither requires nor ships it.
+
 ## Multiplayer
 
 Mechanically this is client-side: adrenaline is worked out entirely on the owning client and
-the max never travels, so a player running this mod does get their own numbers whether or not
-anyone else does.
+the max never travels, so a player running this mod gets their own numbers whether or not
+anyone else does. That is what makes it safe to hand to one person in a group.
 
-It is nonetheless registered with Core as `Requirement.Everyone`, which is a fairness call
-rather than a technical one. Nothing corrupts if only one side runs it — no prefabs are
-registered and no ZDOs are written, so there is no saved data to lose — but two players in the
-same fight would be earning their trinket procs at different rates without either of them
-being told. Core reports the mismatch instead.
+When Longhouse Core is installed, Surge registers with its version gate so a client and server
+that disagree are told about it rather than quietly playing different games. That is a
+fairness call and not a safety one — nothing corrupts if only one side runs it, since no
+prefab is registered and no ZDO is written, so there is no saved data at risk. It is precisely
+because nothing corrupts that the dependency can be optional at all.
+
+Without Core it simply runs, and says so in the log.
 
 `ObjectDB.CopyOtherDB` is patched as well as `Awake`, because a client rebuilds its item
 database from the server's copy on join — patching only `Awake` would let a vanilla server

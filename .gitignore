@@ -12,6 +12,10 @@ obj/
 # Recreate by copying the BepInEx tree from any existing profile.
 testprofile/
 
+# A second profile holding Surge and nothing else, used to prove the mod still runs
+# with Core absent. Same reason as above: third-party binaries, not ours to redistribute.
+testprofile-solo/
+
 # Thunderstore packaging: staging folder and the zips tcli writes.
 package/
 build/

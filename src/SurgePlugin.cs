@@ -1,4 +1,6 @@
+using System.Runtime.CompilerServices;
 using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Logging;
 using Ezomic.Core;
 using HarmonyLib;
@@ -7,7 +9,11 @@ using UnityEngine;
 namespace Surge
 {
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
-    [BepInDependency("ezomic.valheim.core", BepInDependency.DependencyFlags.HardDependency)]
+    // Soft, not hard. Surge is the one mod here meant to be handed to someone who wants only
+    // it, and a hard dependency that is absent does not degrade gracefully - the plugin never
+    // loads at all. Soft still gets the load-order guarantee when Core is present, which is
+    // what registering with the gate needs.
+    [BepInDependency(CoreGuid, BepInDependency.DependencyFlags.SoftDependency)]
     // No BepInProcess. Adrenaline is worked out entirely on the owning client - the max is
     // read off the local player's own equipment every frame and never travels - so this is
     // a client-side mod. It is listed for a dedicated server anyway for the same reason
@@ -21,6 +27,9 @@ namespace Surge
         public const string PluginName = "Surge";
         public const string PluginVersion = "0.1.0";
         public const string PluginAuthor = "Robbin Thijssen";
+
+        /// <summary>Core's plugin GUID. Optional - see TryRegisterWithCore.</summary>
+        private const string CoreGuid = "ezomic.valheim.core";
 
         internal static ManualLogSource Log;
 
@@ -57,16 +66,7 @@ namespace Surge
         {
             Log = Logger;
             SurgeConfig.Bind(Config);
-            // Everyone, not HostOnly - but for fairness rather than for safety, which is a
-            // weaker reason than the one the mods that register prefabs have and is worth
-            // being honest about. Nothing here corrupts when only one side runs it: no prefab
-            // is registered and no ZDO is written, so there is no hash that can fail to
-            // resolve and nothing already standing in a world to lose, and items sync by name
-            // and quality rather than by the shared data this touches. What does happen is
-            // that two players in the same fight earn their trinket procs at different rates
-            // with neither of them being told, and a silent disagreement is the thing Core
-            // exists to report.
-            Suite.Register(PluginGuid, PluginName, PluginVersion, Config);
+            TryRegisterWithCore();
 
             _harmony = new Harmony(PluginGuid);
             _harmony.PatchAll(typeof(ObjectDbPatches));
@@ -104,6 +104,49 @@ namespace Surge
         private static void Queue(object sender, System.EventArgs e)
         {
             _retune = true;
+        }
+
+        /// <summary>
+        /// Joins Core's version gate when Core is installed, and does nothing when it is not.
+        ///
+        /// Surge is the one mod in this set that has to stand alone, because it is the one
+        /// worth handing to somebody who wants only it. Nothing here needs Core: no prefab is
+        /// registered, no ZDO is written, no RPC is sent, and the max is computed on the
+        /// owning client and never travels. Requiring Core would mean a stranger installing
+        /// two mods to get one, and a hard dependency that is missing does not degrade - the
+        /// plugin simply never loads.
+        ///
+        /// So the reference is compile-time only and the call is made behind a check. What is
+        /// kept when Core *is* present is the honest reason for registering at all: two
+        /// players in the same fight would earn their trinket procs at different rates with
+        /// neither of them being told, and a silent disagreement is what the gate exists to
+        /// report. That is fairness rather than safety - unlike the mods that register
+        /// prefabs, nothing here corrupts when only one side has it, which is exactly why it
+        /// is safe to make optional.
+        /// </summary>
+        private void TryRegisterWithCore()
+        {
+            if (!Chainloader.PluginInfos.ContainsKey(CoreGuid))
+            {
+                Log.LogInfo("Core not installed - running standalone, without the version gate.");
+                return;
+            }
+
+            RegisterWithCore();
+        }
+
+        /// <summary>
+        /// Kept separate and never inlined on purpose. The JIT resolves the assemblies a
+        /// method needs when it first compiles that method, so a Suite call sitting directly
+        /// in Awake would drag Ezomic.Core in before the check above could prevent it - and
+        /// the missing-assembly exception would land during plugin load, which is the failure
+        /// this whole arrangement exists to avoid. Isolating it means the type is only ever
+        /// resolved on a machine that has Core.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void RegisterWithCore()
+        {
+            Suite.Register(PluginGuid, PluginName, PluginVersion, Config);
         }
 
         /// <summary>
