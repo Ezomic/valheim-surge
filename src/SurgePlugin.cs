@@ -36,6 +36,14 @@ namespace Surge
         /// <summary>How long the config file has to sit still before it is read.</summary>
         private const float SettleSeconds = 0.3f;
 
+        /// <summary>
+        /// How often the config file's write time is checked. One stat a second is nothing,
+        /// and it is what makes live editing work on machines where the file watcher does not.
+        /// </summary>
+        private const float PollSeconds = 1.0f;
+
+        private float _nextPoll;
+
         private Harmony _harmony;
 
         /// <summary>The Player the base value was last stamped onto, so respawns get it too.</summary>
@@ -84,6 +92,13 @@ namespace Surge
             SurgeConfig.FlatValue.SettingChanged += Queue;
             SurgeConfig.PerTrinket.SettingChanged += Queue;
             SurgeConfig.Minimum.SettingChanged += Queue;
+
+            // Verbose too, even though it changes nothing about the numbers. It is read when
+            // the tuner runs, so without this, turning logging on produced no logging until
+            // something else happened to trigger a pass. That is the state somebody is in
+            // when they are checking whether live editing works at all, and finding silence
+            // is what makes them conclude it does not.
+            SurgeConfig.Verbose.SettingChanged += Queue;
 
             // The base is stamped onto the Player object rather than read from config each
             // frame, so changing it has to invalidate the stamp. Dropping the remembered
@@ -155,9 +170,20 @@ namespace Surge
         /// </summary>
         private void Update()
         {
-            if (ConfigWatcher.TakeDirty()) _reloadAt = Time.time + SettleSeconds;
+            // unscaledTime, not time. Time.time is scaled by timeScale, and a singleplayer
+            // game is paused while the player is alt-tabbed out editing the config - which is
+            // precisely when this clock needs to run. On scaled time the delay never elapsed
+            // until they came back and unpaused, so the reload arrived after the moment they
+            // were looking for it.
+            if (Time.unscaledTime >= _nextPoll)
+            {
+                _nextPoll = Time.unscaledTime + PollSeconds;
+                ConfigWatcher.Poll();
+            }
 
-            if (_reloadAt > 0f && Time.time >= _reloadAt)
+            if (ConfigWatcher.TakeDirty()) _reloadAt = Time.unscaledTime + SettleSeconds;
+
+            if (_reloadAt > 0f && Time.unscaledTime >= _reloadAt)
             {
                 _reloadAt = 0f;
                 Reload();

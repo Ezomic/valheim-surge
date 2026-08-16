@@ -29,11 +29,23 @@ namespace Surge
         /// </summary>
         private static volatile bool _dirty;
 
+        /// <summary>
+        /// The file, and the write time last seen on it. Kept because the watcher cannot be
+        /// trusted on its own - see Poll.
+        /// </summary>
+        private static string _path;
+        private static DateTime _stamp;
+
         public static void Start(ConfigFile config)
         {
             var path = config.ConfigFilePath;
             var directory = Path.GetDirectoryName(path);
             if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory)) return;
+
+            // Seeded now, after Bind has written the file, so the first poll compares against
+            // what is already on disk rather than firing a reload for no reason.
+            _path = path;
+            _stamp = SafeStamp(path);
 
             try
             {
@@ -52,10 +64,10 @@ namespace Surge
             }
             catch (Exception e)
             {
-                // Not fatal, and not worth failing to load over. The mod still works; it
-                // just needs a restart to pick up an edit, which is where it started.
-                SurgePlugin.Log.LogWarning("Could not watch the config file, so edits will "
-                                           + "need a restart: " + e.Message);
+                // Not fatal. Poll covers this case, so an edit is still picked up; it just
+                // arrives on the next poll rather than immediately.
+                SurgePlugin.Log.LogWarning("Could not watch the config file, so edits will be "
+                                           + "noticed by polling instead: " + e.Message);
                 _watcher = null;
             }
         }
@@ -72,6 +84,48 @@ namespace Surge
         private static void OnTouched(object sender, FileSystemEventArgs e)
         {
             _dirty = true;
+        }
+
+        /// <summary>
+        /// Checks the file's write time. Called about once a second from Update, and it is
+        /// what actually makes live editing dependable rather than an optimistic claim.
+        ///
+        /// A FileSystemWatcher looked sufficient because it works here, and a player reported
+        /// that edits only took effect after a restart. The watcher is the part that differs
+        /// between machines: it runs on Unity's Mono rather than desktop .NET, and mod
+        /// managers commonly place a profile behind a junction or a symlink, which the
+        /// watcher does not see through - events raised against the real path never reach a
+        /// watch registered on the link. None of that is detectable from in here, and all of
+        /// it is invisible to the person it happens to, who simply concludes the feature does
+        /// not work.
+        ///
+        /// Comparing a timestamp has none of those failure modes and costs one stat a second.
+        /// So the watcher is kept only as an accelerator, and this is the guarantee.
+        /// </summary>
+        public static void Poll()
+        {
+            if (_path == null) return;
+
+            var stamp = SafeStamp(_path);
+
+            // MinValue means the read failed, usually because a save is in flight. Ignored
+            // rather than treated as a change; the next poll a second later sees the result.
+            if (stamp == DateTime.MinValue || stamp == _stamp) return;
+
+            _stamp = stamp;
+            _dirty = true;
+        }
+
+        private static DateTime SafeStamp(string path)
+        {
+            try
+            {
+                return File.GetLastWriteTimeUtc(path);
+            }
+            catch
+            {
+                return DateTime.MinValue;
+            }
         }
 
         /// <summary>

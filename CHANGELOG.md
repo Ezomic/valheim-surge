@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+Fixes editing the config needing a restart, which is what 1.0.0 said it did not need.
+
+Three separate causes, found after a player reported it. Any one of them is enough to make the
+feature look broken.
+
+- The file watcher is no longer relied on by itself. It runs on Unity's Mono rather than
+  desktop .NET, and a mod manager will often put a profile behind a junction or a symlink,
+  which a watcher does not see through. The file's write time is now checked once a second
+  instead, which has none of those failure modes. The watcher is kept only to make it
+  immediate when it does work.
+- The settle delay ran on scaled time, and a singleplayer game is paused while you are
+  alt-tabbed out editing the config. That is exactly when the timer needed to run, so the
+  reload arrived only once you came back and unpaused. It runs on unscaled time now.
+- Turning `Verbose` on did not itself trigger anything, so it printed nothing until some other
+  change happened to cause a pass. Anyone switching logging on to check whether live editing
+  worked would have found silence and concluded it did not.
+
 ## 1.0.0 - 2026-08-16
 
 First release.
