@@ -69,8 +69,16 @@ namespace Surge
                 var target = Target(prefab.name, original);
                 if (Mathf.Approximately(shared.m_maxAdrenaline, target))
                 {
+                    // Two very different states reach this branch, and printing the original
+                    // for both made them identical in the log. On the second pass of a
+                    // session every configured trinket lands here, so a run with settings
+                    // applied read as thirteen lines of vanilla numbers marked "unchanged" -
+                    // which looks exactly like the mod having reverted them. Say which it is.
                     if (SurgeConfig.Verbose.Value)
-                        SurgePlugin.Log.LogInfo("  " + prefab.name + ": " + Show(original) + " (unchanged)");
+                        SurgePlugin.Log.LogInfo("  " + prefab.name + ": "
+                            + (Mathf.Approximately(target, original)
+                                ? Show(original) + " (vanilla)"
+                                : Show(original) + " -> " + Show(target) + " (already set)"));
 
                     continue;
                 }
