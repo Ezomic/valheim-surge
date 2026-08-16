@@ -1,6 +1,26 @@
 # Changelog
 
-## 1.0.1 - 2026-08-16
+## Unreleased
+
+Config changes no longer depend on the mod being told about them.
+
+A player reported that edits still only took effect after reloading the world, on a build where
+reading the file, noticing the edit and applying it had each been checked here. His screenshots
+ruled out the remaining explanation: the game rebuilds an item's tooltip every frame while the
+inventory is open, so a stale tooltip was never the answer and the value genuinely was not
+changing for him.
+
+Rather than guess at his machine a third time, the notification is now an optimisation instead
+of the mechanism. Every trinket is recomputed from its original once a second and only what
+differs is written, which costs a lookup and a float compare per item. Whatever fails to
+arrive, the values are right within a second.
+
+It also says so. If that sweep ever finds work to do, it logs `Swept up N trinket(s) the config
+change did not reach`, which turns a silent failure into a line in the log.
+
+Also adds, under `Verbose`, a line reporting the player's live max adrenaline whenever it
+changes. That is the number the bar is drawn from and the threshold the trinket fires at, so it
+can be read rather than inferred.
 
 Fixes editing the config needing a restart, which is what 1.0.0 said it did not need.
 

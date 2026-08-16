@@ -44,6 +44,9 @@ namespace Surge
 
         private float _nextPoll;
 
+        /// <summary>Last effective max reported, so the line is written on change only.</summary>
+        private float _lastReportedMax = float.NaN;
+
         private Harmony _harmony;
 
         /// <summary>The Player the base value was last stamped onto, so respawns get it too.</summary>
@@ -122,6 +125,33 @@ namespace Surge
         }
 
         /// <summary>
+        /// Reports the local player's effective max adrenaline whenever it changes.
+        ///
+        /// Added because every check up to now was made against this mod's own log, which
+        /// only ever proved that the value was written to the prefab. Whether the number the
+        /// game actually uses then followed was assumed rather than measured, and a player
+        /// reporting that nothing changes is exactly the case that assumption cannot answer.
+        ///
+        /// This is the number the bar is drawn from and the threshold the trinket fires at:
+        /// Player.GetMaxAdrenaline, which is the player's own base plus the sum of the
+        /// equipment modifiers. Equip a trinket and it should appear. Edit the config and it
+        /// should change within a second or two, with no restart. If it does not move, the
+        /// fault is between the prefab and the player rather than in reading the file.
+        /// </summary>
+        private void ReportLiveMax(Player player)
+        {
+            if (!SurgeConfig.Verbose.Value) return;
+
+            var live = player.GetMaxAdrenaline();
+            if (Mathf.Approximately(live, _lastReportedMax)) return;
+
+            _lastReportedMax = live;
+            Log.LogInfo("Local player's max adrenaline is now "
+                        + live.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)
+                        + " (0 means no trinket equipped).");
+        }
+
+        /// <summary>
         /// Joins Core's version gate when Core is installed, and does nothing when it is not.
         ///
         /// Surge is the one mod in this set that has to stand alone, because it is the one
@@ -179,6 +209,23 @@ namespace Surge
             {
                 _nextPoll = Time.unscaledTime + PollSeconds;
                 ConfigWatcher.Poll();
+
+                // The safety net, and the reason this mod stopped depending on being told.
+                //
+                // A player reported that config changes only took effect after reloading the
+                // world, on a build where reading the file, noticing the edit and applying it
+                // had each been verified here. Two fixes aimed at that failed to help him,
+                // which is the point at which guessing at someone else's machine stops being
+                // worth another round.
+                //
+                // So the event is now an optimisation rather than the mechanism. This
+                // recomputes every trinket from its captured original once a second and
+                // writes only what differs, which is a dictionary lookup and a float compare
+                // per item. Whatever breaks the notification - a watcher that does not fire,
+                // a config editor that sets values without raising the event, something in a
+                // mod manager's profile layout - the values are correct within a second
+                // regardless, because nothing has to arrive for this to run.
+                AdrenalineTuner.Apply(announce: false);
             }
 
             if (ConfigWatcher.TakeDirty()) _reloadAt = Time.unscaledTime + SettleSeconds;
@@ -226,6 +273,8 @@ namespace Surge
         {
             var player = Player.m_localPlayer;
             if (player == null) return;
+
+            ReportLiveMax(player);
 
             if (_restamp) { _restamp = false; _stamped = null; }
             if (player == _stamped) return;

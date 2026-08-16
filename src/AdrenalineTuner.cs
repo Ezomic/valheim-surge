@@ -31,7 +31,12 @@ namespace Surge
     {
         private static readonly Dictionary<string, float> Originals = new Dictionary<string, float>();
 
-        public static void Apply()
+        /// <param name="announce">
+        /// False for the periodic sweep, which runs constantly and must say nothing unless it
+        /// actually changed something. True for the passes worth reporting: startup, a world
+        /// load, and a config change that arrived through the normal event.
+        /// </param>
+        public static void Apply(bool announce = true)
         {
             var db = ObjectDB.instance;
 
@@ -69,6 +74,8 @@ namespace Surge
                 var target = Target(prefab.name, original);
                 if (Mathf.Approximately(shared.m_maxAdrenaline, target))
                 {
+                    if (!announce) continue;
+
                     // Two very different states reach this branch, and printing the original
                     // for both made them identical in the log. On the second pass of a
                     // session every configured trinket lands here, so a run with settings
@@ -86,11 +93,17 @@ namespace Surge
                 shared.m_maxAdrenaline = target;
                 changed++;
 
-                if (SurgeConfig.Verbose.Value)
+                // Always logged when something actually moved, even on a quiet sweep. A sweep
+                // that finds work to do means the config change never arrived through the
+                // event, which is worth seeing in a log rather than being silently repaired.
+                if (SurgeConfig.Verbose.Value || !announce)
                     SurgePlugin.Log.LogInfo("  " + prefab.name + ": " + Show(original) + " -> " + Show(target));
             }
 
-            SurgePlugin.Log.LogInfo("Found " + found + " adrenaline item(s); retuned " + changed + ".");
+            if (announce)
+                SurgePlugin.Log.LogInfo("Found " + found + " adrenaline item(s); retuned " + changed + ".");
+            else if (changed > 0)
+                SurgePlugin.Log.LogInfo("Swept up " + changed + " trinket(s) the config change did not reach.");
         }
 
         /// <summary>
