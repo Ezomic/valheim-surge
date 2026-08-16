@@ -19,6 +19,11 @@ his own trinket kept saying nothing had changed. He was right.
 Carried items are now written along with the prefabs. The log reports both counts, as
 `retuned N, plus M in the player's inventory`.
 
+The README also explains something that will otherwise look like the same bug. Valheim writes
+an item tooltip once, when your cursor arrives on it, and never rewrites it while it sits
+there. Hover a trinket while a change lands and the tooltip keeps the old number until you move
+off it and back. The value in the game has already changed.
+
 ## 1.0.2 - 2026-08-16
 
 Config changes no longer depend on the mod being told about them.

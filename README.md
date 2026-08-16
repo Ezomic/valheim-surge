@@ -35,6 +35,13 @@ Save the file and it applies straight away. No restart, and you do not have to l
 world. That is deliberate. The right number here is a feel judgement rather than a fact, and
 you find it by fighting something, changing the value, and fighting the same thing again.
 
+One thing that will make you think it did not work. Valheim writes an item's tooltip once, at
+the moment your cursor arrives on it, and never rewrites it while it sits there. So if you are
+hovering a trinket when the change lands, the tooltip keeps showing the old number. Move the
+cursor off it and back on and you will see the new one. The crafting panel is the same, it
+refreshes when you click a different recipe. Nothing is wrong when this happens and the value
+in the game has already changed, it is just the interface not being asked again.
+
 Set `Verbose = true` and the mod lists every trinket it found in `BepInEx/LogOutput.log`, with
 what it changed each one to.
 
