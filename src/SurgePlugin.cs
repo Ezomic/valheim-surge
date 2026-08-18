@@ -17,7 +17,7 @@ namespace Surge
     // No BepInProcess. Adrenaline is worked out entirely on the owning client - the max is
     // read off the local player's own equipment every frame and never travels - so this is
     // a client-side mod. It is listed for a dedicated server anyway for the same reason
-    // Hoard is: a client rebuilds its item database from the server's copy on join, through
+    // Yoke is: a client rebuilds its item database from the server's copy on join, through
     // ObjectDB.CopyOtherDB. That path is patched below, so a vanilla server no longer undoes
     // the mod, but a server that also runs it keeps everyone on the same numbers without
     // each player having to match cfg files.
