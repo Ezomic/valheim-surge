@@ -4,7 +4,7 @@
     "version_number":  "1.0.3",
     "description":  "Configure the max adrenaline granted by trinkets.",
     "dependencies":  [
-                         "denikson-BepInExPack_Valheim-5.4.2333"
+                         "denikson-BepInExPack_Valheim-5.4.2350"
                      ],
     "website_url":  "https://github.com/Ezomic/valheim-surge"
 }
