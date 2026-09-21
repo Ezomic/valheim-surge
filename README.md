@@ -141,6 +141,15 @@ One path has been reasoned about but never run: `ObjectDB.CopyOtherDB`, which fi
 join a server that does not have the mod. Every test so far hosted its own world, so the
 client was the server and that path never came up.
 
+## Bugs and ideas
+
+Both go to the site. [longhouse.thijssensoftware.nl/bugs](https://longhouse.thijssensoftware.nl/bugs)
+is for anything broken, and [longhouse.thijssensoftware.nl/ideas](https://longhouse.thijssensoftware.nl/ideas)
+is for what a mod should do next. You can vote on other people's ideas there as well.
+
+Signing in takes a Steam or Discord account. I work from that list, so the votes decide what
+I pick up next.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
